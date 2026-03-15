@@ -11,6 +11,12 @@
       system:
       let
         pkgs = import nixpkgs { inherit system; };
+        tex = (pkgs.texliveBasic.withPackages (ps: with ps; [
+          # https://github.com/James-Yu/LaTeX-Workshop/wiki/Install#installation
+          latexmk # making files from latex
+          chktex # linting
+          latexindent # formatting
+        ]));
       in
       {
         devShells.default = pkgs.mkShellNoCC {
@@ -19,6 +25,9 @@
             go
             gotools
             gopls
+
+            # LaTeX
+            tex
           ];
         };
       }
