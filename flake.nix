@@ -1,36 +1,26 @@
 {
-  description = "Go Template";
-
+  description = "Xollo dev environment";
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = {
-    nixpkgs,
-    flake-utils,
-    ...
-  }:
+  outputs =
+    { nixpkgs, flake-utils, ... }:
     flake-utils.lib.eachDefaultSystem (
-      system: let
-        pkgs = nixpkgs.legacyPackages.${system};
-
-        nativeBuildInputs = with pkgs; [
-          go
-          gopls
-        ];
-        buildInputs = with pkgs; [];
-      in {
-        devShells.default = pkgs.mkShell {inherit nativeBuildInputs buildInputs;};
-
-        # packages.default = pkgs.buildGoModule rec {
-        #   name = "template";
-        #   src = ./.;
-
-        #   inherit buildInputs;
-
-        #   vendorHash = null;
-        # };
+      system:
+      let
+        pkgs = import nixpkgs { inherit system; };
+      in
+      {
+        devShells.default = pkgs.mkShellNoCC {
+          buildInputs = with pkgs; [
+            # for go development
+            go
+            gotools
+            gopls
+          ];
+        };
       }
     );
 }
