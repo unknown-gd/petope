@@ -6,3 +6,6 @@ result*
 
 # latex artifacts
 latex_dist
+
+# apple stuff
+.DS_store

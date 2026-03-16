@@ -11,7 +11,7 @@
       system:
       let
         pkgs = import nixpkgs { inherit system; };
-        tex = (pkgs.texliveBasic.withPackages (ps: with ps; [
+        tex = (pkgs.texliveSmall.withPackages (ps: with ps; [
           # https://github.com/James-Yu/LaTeX-Workshop/wiki/Install#installation
           latexmk # making files from latex
           chktex # linting
