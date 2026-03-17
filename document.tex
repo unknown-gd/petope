@@ -1,12 +1,56 @@
 \documentclass[a4paper]{article}
+
+\usepackage{hyperref}
+
 \title{petope - a VPN development project}
 \author{Retro}
 \date{2026}
+
 \begin{document}
   \maketitle
 
+  \tableofcontents
+
+  \addcontentsline{toc}{section}{Introduction}
   \section*{Introduction}
-  Main idea
+
+  When someone asks how can they connect to their server at home, 
+  for example on \href{https://www.reddit.com/r/selfhosted/}{r/selfhosted} subreddit,
+  I often see that \href{https://tailscale.com/}{Tailscale} is suggested.
+
+  Why you may ask? Well to connect to your own server is not as easy task as 
+  to connect normal public facing server. 
+  Most of home networks are behind NAT with periodically changing IPv4 address
+  \href{https://en.wikipedia.org/wiki/IPv4_address_exhaustion}{since we don't have enough IPv4 addresses},
+  and there are firewalls that prevent access from outside.
   
+  In some cases you don't even have public IPv4 address, 
+  since ISP provided may use \href{https://en.wikipedia.org/wiki/Carrier-grade_NAT}{CGNAT} 
+  which makes connection from the internet impossible even if you use \href{https://en.wikipedia.org/wiki/Dynamic_DNS}{Dynamic DNS}
+  and open ports on your router.
+
+  And most of these problems are solved by Tailscale! 
+  When you start a Tailscale application, it connects to a \href{https://tailscale.com/docs/concepts/control-data-planes}{control plane}
+  which coordinates your Tailscale network (known as \href{https://tailscale.com/docs/concepts/tailnet}{tailnet}),
+  tells you which devices are in it, their internal addresses, public key, manages access to each device
+  and helps you with \href{https://tailscale.com/blog/how-nat-traversal-works}{NAT traversal} 
+  so you can even connect directly to your server.
+  Instead of classic VPN structure where you connect to relay server to access internal subnet
+  you connect to each of your servers directly, thus cutting a middle man and an additional latency
+  and single point of failure\footnote{there still a single point of failure, as tailnet is managed by control plane instead of relay server}.
+  And since all clients in the network connect to each other directly, 
+  it is called a \href{https://en.wikipedia.org/wiki/Mesh_networking}{Mesh VPN}.
+
+  So, with Tailscale you just connect your device to your tailnet, and you can just to your other devices by an address. 
+  No need to add peers to each device, open ports, manage routing. Plug-n-play solution that just works.
+
+  Also it makes a great solution when you want to play with your friends together,
+  but there is much simpler to use alternative named \href{https://www.radmin-vpn.com/}{Radmin VPN},
+  which has somewhat similiar functionality, but is proprietary, and I just don't like it.
+
+  So, after being amazed by how Tailscale works internally, I want to learn by
+  creating my own VPN solution, learn from my mistakes and while developing everything needed,
+  and maybe even create something for gamers around the world to use to play together.
+  And I am totally okay if I won't be able to handle such project, I am sure I will learn a lot of stuff!
 
 \end{document}
