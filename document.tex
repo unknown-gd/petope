@@ -1,6 +1,7 @@
 \documentclass[a4paper]{article}
 
 \usepackage{hyperref}
+\usepackage{xurl}
 
 \title{petope - a VPN development project}
 \author{Retro}
@@ -52,5 +53,68 @@
   creating my own VPN solution, learn from my mistakes and while developing everything needed,
   and maybe even create something for gamers around the world to use to play together.
   And I am totally okay if I won't be able to handle such project, I am sure I will learn a lot of stuff!
+
+
+  \section{Researching existing solutions} \label{existingsolutions}
+
+  Since I like \href{https://en.wikipedia.org/wiki/Self-hosting_(network)}{self hosting}
+  different stuff on my servers, I also like to have control of my data,
+  particulary don't give a third-party control to it. 
+  That's why I don't fully enjoy Tailscale and Radmin VPN solutions:
+  \begin{itemize}
+    \item Radmin VPN is fully proprietary, so they control the server- and client-side.
+          There is nothing stopping them from adding collecting data or even stealing from my PC,
+          or adding unauthorized device to my network.
+    \item Tailscale has open-source client, but control-plane is fully proprietary and controls
+          how client operates. In case of its compomise, your connected devices are fully open
+          unless you have configured a firewall. But I trust Tailscale company much more,
+          and it feels like a fair trade of security and convinience.
+  \end{itemize}
+
+  But projects like \href{https://syncthing.net/}{Syncthing} and \href{https://yggdrasil-network.github.io/}{Yggdrasil}
+  inspire me to create something more decentralized, where each device in control of to whom to trust,
+  and don't rely on single server which commands to whom he can connect and how.
+
+  I really liked Yggdrasil approach to the network -
+  each client is also a server, and an IPv6 address of a client also represents his public key.
+  This way when you send a packet to an IPv6 address, you can already encrypt message
+  by using the address, and only client who has right private key can decrypt it.
+  It is very cool idea since without a single authority you can be sure
+  that only correct recipient can decrypt and see your messages, and other peers
+  in the network relay the message until it gets to the right recipient.
+  Decentralization power, hell yeah!
+
+  But without a central server there is no way to find a way how to connect to a peer on the internet. 
+  \href{https://en.wikipedia.org/wiki/BitTorrent}{BitTorrent}
+  % https://en.wikipedia.org/wiki/Peer_exchange
+  % https://en.wikipedia.org/wiki/Mainline_DHT
+
+
+  \section{Planning} \label{planning}
+
+  Before starting any implementation, 
+  I need to decide important choices in 
+  how I will be developing my own VPN:
+  \begin{enumerate}
+    \item \nameref{corefunctionality}
+    \item 
+  \end{enumerate}
+
+  \subsection{Core functionality} \label{corefunctionality}
+
+ 
+  \newpage
+  \section*{Sources}
+  \begin{itemize}
+    \item \url{https://yggdrasil-network.github.io/implementation.html}
+    \item \url{https://yggdrasil-network.github.io/2018/08/19/congestion-control.html}
+    \item \url{https://yggdrasil-network.github.io/2018/07/13/about-mtu.html}
+    \item \url{https://yggdrasil-network.github.io/2023/10/22/upcoming-v05-release.html}
+  \end{itemize}
+
+  % $ https://www.reddit.com/r/crypto/comments/f7c2nv/chacha20_v_aes256/
+  % $ https://crypto.stackexchange.com/questions/79518/is-xchacha20-poly1305-quantum-resistant
+  % $ https://crypto.stackexchange.com/questions/101050/xchacha20-vs-aes-128-security-and-speed
+  % https://nordpass.com/features/xchacha20-encryption/
 
 \end{document}

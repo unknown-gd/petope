@@ -16,6 +16,7 @@
           latexmk # making files from latex
           chktex # linting
           latexindent # formatting
+          xurl # \url line breaking
         ]));
       in
       {
