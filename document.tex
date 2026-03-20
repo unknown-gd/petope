@@ -10,7 +10,13 @@
 \begin{document}
   \maketitle
 
+  \newpage
+
+
   \tableofcontents
+
+  \newpage
+
 
   \addcontentsline{toc}{section}{Introduction}
   \section*{Introduction}
@@ -54,6 +60,8 @@
   and maybe even create something for gamers around the world to use to play together.
   And I am totally okay if I won't be able to handle such project, I am sure I will learn a lot of stuff!
 
+  \newpage
+
 
   \section{Researching existing solutions} \label{existingsolutions}
 
@@ -85,7 +93,17 @@
   Decentralization power, hell yeah!
 
   But without a central server there is no way to find a way how to connect to a peer on the internet. 
-  \href{https://en.wikipedia.org/wiki/BitTorrent}{BitTorrent}
+  \href{https://en.wikipedia.org/wiki/BitTorrent}{BitTorrent} 
+  in \href{https://torrentfreak.com/bittorrents-dht-turns-10-years-old-150607/}{old days (before 2005)}
+  used \href{https://en.wikipedia.org/wiki/BitTorrent_tracker}{trackers}
+  to find other peers for a torrent you want to download. 
+  The problem is that \emph{distributed file-sharing} relies on \emph{a central server}.
+  \footnote{which could be improved by using multiple trackers, but it is still not as \emph{distributed}}
+  To overcome this problem, nowadays \href{https://en.wikipedia.org/wiki/Comparison_of_BitTorrent_clients}{BitTorrent clients}
+  use \href{https://en.wikipedia.org/wiki/Kademlia}{Kademlia}-based \href{https://en.wikipedia.org/wiki/Distributed_hash_table}{distributed hash table},
+  aka \href{https://en.wikipedia.org/wiki/Mainline_DHT}{Mainline DHT}.
+
+
   % https://en.wikipedia.org/wiki/Peer_exchange
   % https://en.wikipedia.org/wiki/Mainline_DHT
 
@@ -104,6 +122,8 @@
 
  
   \newpage
+
+
   \section*{Sources}
   \begin{itemize}
     \item \url{https://yggdrasil-network.github.io/implementation.html}
