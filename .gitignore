@@ -9,3 +9,8 @@ latex_dist
 
 # apple stuff
 .DS_store
+
+
+# Added by cargo
+
+/target

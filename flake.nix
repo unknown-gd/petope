@@ -1,7 +1,7 @@
 {
-  description = "Xollo dev environment";
+  description = "petope dev env";
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -22,10 +22,11 @@
       {
         devShells.default = pkgs.mkShellNoCC {
           buildInputs = with pkgs; [
-            # for go development
-            go
-            gotools
-            gopls
+            cargo
+            rustc
+            clippy
+            rustfmt
+            rust-analyzer
 
             # LaTeX
             tex
