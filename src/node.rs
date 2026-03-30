@@ -30,7 +30,7 @@ pub fn main(args: NodeArgs) {
     let disco = discovery::DiscoveryClient::new(&args.discovery);
     loop {
         println!("searching for node {:?}", &args.target);
-        let node_addr = discover_node(&socket, &disco, &args.id, &args.target).unwrap();
+        let mut node_addr = discover_node(&socket, &disco, &args.id, &args.target).unwrap();
 
         println!(
             "trying to reach node {:?} via {} on {}",
@@ -53,7 +53,19 @@ pub fn main(args: NodeArgs) {
                     .unwrap_or("");
 
                 println!("{} -> {}", addr, data);
+                if addr != node_addr {
+                    // try to ask the discovery if the node is the right one
+                    node_addr = disco.get(&socket, &args.target).unwrap();
+                }
+
                 if addr == node_addr {
+                    socket
+                        .send_to(
+                            format!("got the message, node {:?}!\n", &args.target).as_bytes(),
+                            node_addr,
+                        )
+                        .unwrap();
+
                     println!("received a message from the node, success!");
                     return;
                 }
@@ -80,7 +92,11 @@ fn discover_node(
                 return Ok(addr);
             }
             Err(e) => {
-                if e.kind() != ErrorKind::NotFound {
+                // could be transformed into a match
+                if e.kind() != ErrorKind::NotFound
+                    && e.kind() != ErrorKind::TimedOut
+                    && e.kind() != ErrorKind::WouldBlock
+                {
                     return Err(e);
                 }
             }

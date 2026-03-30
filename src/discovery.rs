@@ -114,14 +114,14 @@ impl DiscoveryClient {
         DiscoveryClient { addr }
     }
 
-    fn connect(&self, socket: &UdpSocket) -> io::Result<()> {
-        socket.connect(self.addr)
-    }
-
     fn recv(&self, socket: &UdpSocket) -> io::Result<String> {
         let mut buf = [0; 128];
-        let received = socket.recv(&mut buf)?;
-        let data = str::from_utf8(&buf[..received])
+        let (received, addr) = socket.recv_from(&mut buf)?;
+        if addr != self.addr {
+            return Err(Error::from(ErrorKind::Deadlock));
+        }
+
+        let data: String = str::from_utf8(&buf[..received])
             .map(|v| String::from(v.trim()))
             .map_err(|_| Error::from(io::ErrorKind::InvalidData))?;
 
@@ -132,13 +132,12 @@ impl DiscoveryClient {
 
     fn send(&self, socket: &UdpSocket, args: &[&str]) -> io::Result<()> {
         let result = args.join("|");
-        socket.send(result.as_bytes())?;
+        socket.send_to(result.as_bytes(), self.addr)?;
         // println!("{} -> {}", result.as_str(), self.addr);
         Ok(())
     }
 
     pub fn ping(&self, socket: &UdpSocket) -> io::Result<()> {
-        self.connect(socket)?;
         self.send(socket, &["ping"])?;
         let pong = self.recv(socket).map(|v| v == "pong").unwrap_or(false);
 
@@ -150,13 +149,11 @@ impl DiscoveryClient {
     }
 
     pub fn register(&self, socket: &UdpSocket, node_id: &str) -> io::Result<()> {
-        self.connect(socket)?;
         self.send(socket, &["register", node_id])?;
         Ok(())
     }
 
     pub fn get(&self, socket: &UdpSocket, node_id: &str) -> io::Result<SocketAddr> {
-        self.connect(socket)?;
         self.send(socket, &["get", node_id])?;
         let response = self.recv(socket)?;
         let mut args = response.split("|");
