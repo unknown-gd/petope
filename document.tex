@@ -231,7 +231,7 @@ fn client() {
 }
 \end{minted}
 
-% \newpage
+\newpage
 
 Aand I get this after running both server and the client:
 
@@ -242,11 +242,20 @@ Aand I get this after running both server and the client:
 
 As you can see, I got a message sent from a client to the server,
 and server replied with reversed message.
-Now it is time to do some UDP hole punching!
+Now it is time to do some discovery!
 
-\section{Adding hole punching}
+\section{Peer discovery}
 
-% adde clap for easier argument parsing https://docs.rs/clap/latest/clap/
+Now that we can connect via UDP, we need to replace an IP address with an identificator.
+For this to work, some sort of a discovery server needs to be in place, which
+will tell what IP addresses an identifactor has.
+
+My own implementation will use same UDP protocol,
+and messages will consist of simple text strings in format of:
+\texttt{command|arguments}.
+
+You can see an implementation of discovery server on commit
+\href{https://github.com/dankmolot/petope/tree/ada754c522e47c6b43f127ef1a3b6b2a6b7bc2c2}{ada754}
 
 
 \newpage
