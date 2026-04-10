@@ -360,6 +360,22 @@ Also another problem I forsee is that both nodes in \emph{different} networks bu
 will have also a problem connecting to each other, since discovery server
 can't know internal CGNAT address of both nodes.
 
+\section{TCP hole punching}
+
+\href{https://en.wikipedia.org/wiki/TCP_hole_punching}{TCP hole punching} on the paper works
+similarly to the UDP hole punching, we just need to send a \texttt{SYN} request from both ends
+to the nodes addresses, and next packets should go through the NAT.
+
+The problem is implementing the connection via code, most standard libraries only allow
+to TCP socket operate in "connect" or "listen" mode, and "connect" mode only allows to
+send packets to \emph{one} destination address.
+
+Luckily, there is a \href{https://crates.io/crates/socket2}{socket2} Rust library
+which have OS-dependent API calls to create TCP sockets which could be reused for multiple
+destination addresses with same local port, \emph{in theory}. Let's experiment!
+
+\subsection{Trying to reuse same socket}
+
 \newpage
 \section*{Sources}
 \begin{itemize}
