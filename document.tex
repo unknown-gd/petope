@@ -375,6 +375,63 @@ which have OS-dependent API calls to create TCP sockets which could be reused fo
 destination addresses with same local port, \emph{in theory}. Let's experiment!
 
 \subsection{Trying to reuse same socket}
+If you are going to try to create two different \href{https://en.wikipedia.org/wiki/Network_socket}{sockets}
+with the same local address, operating system will give a "Address already in use" error.
+Thankfully most modern operating systems have an option called \texttt{SO\_REUSEPORT} for a socket
+which will allow to have multiple sockets on the same local address. This way we can connect
+to a discovery server, register our node id, and then try to connect to another node by reusing
+same local address and port.
+
+Simple example of using \href{https://crates.io/crates/socket2}{socket2} library:
+\begin{minted}{rust}
+use std::io;
+use socket2::{Domain, Protocol, Socket, Type};
+
+// Creates a TCP socket with SO_REUSEPORT
+fn create_socket() -> io::Result<Socket> {
+    let socket = Socket::new(Domain::IPV4, Type::STREAM, Protocol::TCP.into())?;
+    socket.set_reuse_port(true)?; // sets SO_REUSEPORT for the socket
+    Ok(socket)
+}
+
+fn main() {
+    // First connect to a discovery server, so OS will give us a local addr
+    let first_socket = create_socket().unwrap();
+    let addr = "127.0.0.1:4444".parse().into(); // <-- discovery server
+    first_socket.connect(&addr.into()).unwrap(); // establish a connection with discovery server
+
+    let local_addr = first_socket.local_addr().unwrap()
+    println!("local addr: {}", local_addr); // will print out 127.0.0.1:<random port>
+
+    let second_socket = create_socket().unwrap();
+    second_socket.bind(local_addr).unwrap(); // reuse same ip:port as in first socket
+    second_socket.listen(128).unwrap(); // run socket in listen mode
+}
+\end{minted}
+
+Without \mintinline{rust}|Socket::set_reuse_port(true)|, this code would fail with an
+"Address already in use" error, which you can try to reproduce by changing \texttt{true} to \texttt{false}.
+
+\subsection{First attempt}
+Rewriting discovery server to TCP was a pretty simple task, I was forced to open a new thread for
+each new connection so it won't be closed immediately, but nothing hard.
+
+Actual hard part was to rewrite a node code, since I can't now carelessly send packets there and
+try to receive some, now I need to establish a connection first. But I won't be able to do it since
+there is nothing to connect to. So first node tries to connect to another node, or then goes into a
+\emph{listen} mode which just waits to receive a message.
+
+First attempt under commit \href{https://github.com/dankmolot/petope/tree/3e83b3}{3e83b3} was
+successful in localhost (both nodes in the same \href{https://en.wikipedia.org/wiki/Loopback}{loopback} interface),
+but running it on different machines went unsuccessful. I suppose I would need to do a connection + listen
+simualtounesly, which currently with synchronous Rust code is hard.
+
+It is time for \href{https://tokio.rs/}{Tokio} library, which brings asynchronous runtime
+which in turn will allow me to "easily"\footnote{asynchronous Rust is pretty hard by itself,
+  which is why I have avoided it until now.} run both connection attempts and listen for incoming messages.
+
+\subsection{Second attempt}
+TODO:
 
 \newpage
 \section*{Sources}
