@@ -1,6 +1,6 @@
 use std::{
     io::{self, ErrorKind, Read, Write},
-    net::{Shutdown, SocketAddr, TcpListener, UdpSocket},
+    net::{Shutdown, SocketAddr, TcpListener, TcpStream, UdpSocket},
     process::exit,
     str,
     thread::sleep,
@@ -121,7 +121,18 @@ fn listen(
         "listening for connections on {}",
         listener.local_addr().unwrap()
     );
-    let (mut stream, mut addr) = listener.accept().unwrap();
+
+    let (mut stream, mut addr) = match accept(&listener) {
+        Ok(result) => result,
+        Err(e) => {
+            if e.kind() == ErrorKind::NotFound {
+                return;
+            }
+
+            panic!("accept: {}", e);
+        }
+    };
+
     println!("got incoming connection: {}", addr);
     if addr != node_addr {
         addr = disco.get(&args.target).unwrap();
@@ -151,4 +162,22 @@ fn listen(
             eprintln!("read error: {}", e);
         }
     }
+}
+
+fn accept(listener: &TcpListener) -> io::Result<(TcpStream, SocketAddr)> {
+    for _ in 1..10 {
+        match listener.accept() {
+            Ok(result) => {
+                return Ok(result);
+            }
+            Err(e) => {
+                if e.kind() == ErrorKind::WouldBlock || e.kind() == ErrorKind::TimedOut {
+                    sleep(Duration::from_millis(500));
+                    continue;
+                }
+                return Err(e);
+            }
+        }
+    }
+    Err(ErrorKind::NotFound.into())
 }
