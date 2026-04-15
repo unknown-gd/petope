@@ -1,4 +1,4 @@
-use std::{net::SocketAddr, process::exit, thread::sleep, time::Duration};
+use std::{net::SocketAddr, process::exit, time::Duration};
 
 use anyhow::{Context, Result, bail};
 use bytes::BytesMut;
@@ -7,6 +7,7 @@ use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::{TcpSocket, lookup_host},
     stream,
+    time::sleep,
 };
 
 use crate::{discovery::DiscoveryClient, utils};
@@ -80,7 +81,7 @@ pub async fn main(args: NodeArgs) -> Result<()> {
                     stream.read_buf(&mut buf).await?;
                     println!("message: {}", std::str::from_utf8(buf.as_ref()).unwrap());
 
-                    sleep(Duration::from_secs(1));
+                    sleep(Duration::from_secs(1)).await;
                     exit(0);
                 }
                 Err(e) => {
@@ -89,7 +90,7 @@ pub async fn main(args: NodeArgs) -> Result<()> {
             }
         }
 
-        sleep(Duration::from_secs(5));
+        sleep(Duration::from_secs(1)).await;
     }
 
     Ok(())
