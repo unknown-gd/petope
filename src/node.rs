@@ -62,7 +62,7 @@ pub async fn main(args: NodeArgs) -> Result<()> {
     };
 
     loop {
-        if let Some(node_addr) = discovery.get(args.target.clone()).await? {
+        if let Some(node_addr) = discovery.get(args.target.clone()).await.ok().flatten() {
             println!("trying to connect to {}", node_addr);
             match utils::reusable_socket(Some(local_addr))?
                 .connect(node_addr)
