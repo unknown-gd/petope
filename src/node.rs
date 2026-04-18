@@ -1,16 +1,13 @@
-use std::{net::SocketAddr, process::exit, time::Duration};
-
+use crate::{discovery::DiscoveryClient, utils};
 use anyhow::{Context, Result, bail};
 use bytes::BytesMut;
 use clap::Args;
+use std::{process::exit, time::Duration};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
-    net::{TcpSocket, lookup_host},
-    stream,
+    net::lookup_host,
     time::sleep,
 };
-
-use crate::{discovery::DiscoveryClient, utils};
 
 #[derive(Args, Debug)]
 pub struct NodeArgs {
@@ -29,7 +26,7 @@ pub async fn main(args: NodeArgs) -> Result<()> {
 
         tokio::spawn(async move {
             loop {
-                let (stream, addr) = listener.accept().await.unwrap();
+                let (_, addr) = listener.accept().await.unwrap();
                 println!("connection from {}", addr);
                 exit(0);
             }
@@ -92,6 +89,4 @@ pub async fn main(args: NodeArgs) -> Result<()> {
 
         sleep(Duration::from_secs(5)).await;
     }
-
-    Ok(())
 }
