@@ -1,4 +1,4 @@
-use std::{io, net::SocketAddr};
+use std::{io, net::SocketAddr, process::Command};
 use tokio::net::TcpSocket;
 
 pub fn reusable_socket(bind: Option<SocketAddr>) -> io::Result<TcpSocket> {
@@ -11,4 +11,19 @@ pub fn reusable_socket(bind: Option<SocketAddr>) -> io::Result<TcpSocket> {
     }
 
     Ok(socket)
+}
+
+pub fn get_hostname() -> io::Result<String> {
+    let output = Command::new("hostname").output()?.stdout;
+    let mut result = String::from(std::str::from_utf8(&output).unwrap().trim());
+
+    if !result.ends_with(".local") {
+        result += ".local"
+    }
+
+    if !result.ends_with('.') {
+        result += "."
+    }
+
+    Ok(result)
 }
