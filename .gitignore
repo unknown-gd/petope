@@ -1,7 +1,5 @@
 # Nix
 result*
-
-# Misc
 .direnv
 
 # latex artifacts
@@ -10,7 +8,8 @@ latex_dist
 # apple stuff
 .DS_store
 
-
-# Added by cargo
-
+# rust stuff
 /target
+
+# other
+.vscode
