@@ -10,7 +10,7 @@ use tokio::{
 
 // based on https://tokio.rs/tokio/tutorial/framing
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Command {
     Ping,
     Pong,
