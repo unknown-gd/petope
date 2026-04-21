@@ -31,8 +31,8 @@ impl<const N: usize> Into<[u8; N]> for BasedKey<N> {
 impl<const N: usize> TryFrom<&[u8]> for BasedKey<N> {
     type Error = TryFromSliceError;
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
-        let bytes = value.try_into()?;
-        Ok(BasedKey(bytes))
+        let bytes: [u8; N] = value.try_into()?;
+        Ok(bytes.into())
     }
 }
 
