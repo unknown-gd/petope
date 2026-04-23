@@ -5,6 +5,7 @@ use toml_edit::{DocumentMut, Item, Table};
 
 #[derive(Debug, Clone)]
 pub struct Config {
+    pub interface_name: Option<String>,
     pub peers: Vec<Peer>,
 }
 
@@ -64,6 +65,11 @@ impl Config {
     }
 
     fn parse(doc: DocumentMut) -> Result<Self> {
+        let interface_name = doc
+            .get("interface_name")
+            .and_then(Item::as_str)
+            .map(String::from);
+
         let mut peers = Vec::new();
         if let Some(arr) = doc.get("peer").and_then(Item::as_array_of_tables) {
             for (i, t) in arr.iter().enumerate() {
@@ -73,7 +79,10 @@ impl Config {
             }
         }
 
-        Ok(Config { peers })
+        Ok(Config {
+            interface_name,
+            peers,
+        })
     }
 }
 
