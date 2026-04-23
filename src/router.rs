@@ -58,17 +58,7 @@ impl Router {
         );
 
         if ip.destination_addr() == me {
-            // special case for pinging
-            if let Some(data) = packet::echo_reply(&ip) {
-                println!("echo reply");
-                // in most cases ping reply will be routed to a peer
-                // in worst case it will be double serialized if routed to local
-                // try_send since if a channel is full we may be stuck here
-                self.route_queue.try_send(data).ok();
-                return Ok(());
-            }
-
-            self.send_queue.send(packet::serialize_ip_slice(ip)).await?;
+            self.send_queue.send(bytes).await?;
             return Ok(());
         }
 
