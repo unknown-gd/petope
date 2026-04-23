@@ -31,9 +31,12 @@ async fn main() -> Result<()> {
         .await
         .context("bind an endpoint")?;
 
-    Router::run(&state).await.context("run router")?;
+    let router = Router::run(&state, endpoint.clone())
+        .await
+        .context("run router")?;
 
     println!("running as {}", endpoint.id().to_z32());
+    println!("ipv4: {} ipv6: {}", router.addr_v4, router.addr_v6);
 
     tokio::signal::ctrl_c().await?;
     println!("bye-bye");

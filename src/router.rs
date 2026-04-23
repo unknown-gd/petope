@@ -1,8 +1,8 @@
-use crate::{packet, state::State, tun};
+use crate::{packet, state::State, tun, utils};
 use anyhow::Result;
 use bytes::BytesMut;
 use etherparse::IpSlice;
-use iroh::EndpointId;
+use iroh::{Endpoint, EndpointId};
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     sync::Arc,
@@ -15,19 +15,27 @@ pub struct Peer {
 }
 
 pub struct Router {
+    pub addr_v4: Ipv4Addr,
+    pub addr_v6: Ipv6Addr,
+    endpoint: Endpoint,
     route_queue: mpsc::Sender<BytesMut>,
     send_queue: mpsc::Sender<BytesMut>,
 }
 
 impl Router {
-    pub async fn run(state: &State) -> Result<Arc<Self>> {
+    pub async fn run(state: &State, endpoint: Endpoint) -> Result<Arc<Self>> {
+        let (addr_v4, addr_v6) = utils::ip_pair_from_id(endpoint.id());
+
         let (route_queue, incoming) = mpsc::channel(128);
         let (send_queue, outcoming) = mpsc::channel(128);
-        tun::create_tun(state, route_queue.clone(), outcoming).await?;
+        tun::create_tun(state, (addr_v4, addr_v6), route_queue.clone(), outcoming).await?;
 
         let router = Arc::new(Router {
+            addr_v4,
+            addr_v6,
             route_queue,
             send_queue,
+            endpoint,
         });
 
         router.clone().receive(incoming).await;
@@ -48,8 +56,7 @@ impl Router {
 
     async fn route(&self, bytes: BytesMut) -> Result<()> {
         let ip = IpSlice::from_slice(&bytes)?;
-        let me: Ipv6Addr = "fdee::1".parse().unwrap();
-        let me2: Ipv4Addr = "10.1.1.1".parse().unwrap();
+        let dst = ip.destination_addr();
 
         if self.route_queue.capacity() < 4 {
             println!(
@@ -59,7 +66,7 @@ impl Router {
             );
         }
 
-        if ip.destination_addr() == me || ip.destination_addr() == me2 {
+        if dst == self.addr_v4 || dst == self.addr_v6 {
             self.send_queue.send(bytes).await?;
             return Ok(());
         }

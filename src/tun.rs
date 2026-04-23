@@ -1,4 +1,7 @@
-use std::sync::Arc;
+use std::{
+    net::{Ipv4Addr, Ipv6Addr},
+    sync::Arc,
+};
 
 use crate::state::State;
 use anyhow::{Context, Result};
@@ -13,10 +16,11 @@ use tun_rs::{
 
 pub async fn create_tun(
     state: &State,
+    addr: (Ipv4Addr, Ipv6Addr),
     incoming: mpsc::Sender<BytesMut>,
     mut outcoming: mpsc::Receiver<BytesMut>,
 ) -> Result<()> {
-    let dev = create_device(&state).context("create tun device")?;
+    let dev = create_device(&state, addr).context("create tun device")?;
     let ifindex = get_ifindex(&dev.name()?).context("retrieve tun device index")?;
 
     setup_routes(&state, ifindex)
@@ -52,12 +56,12 @@ pub async fn create_tun(
     Ok(())
 }
 
-fn create_device(state: &State) -> std::io::Result<AsyncDevice> {
+fn create_device(state: &State, addr: (Ipv4Addr, Ipv6Addr)) -> std::io::Result<AsyncDevice> {
     DeviceBuilder::new()
         .name(get_device_name(state)?)
         .mtu(1000)
-        .ipv4("10.1.1.1", 32, None)
-        .ipv6("fdee::1", 128)
+        .ipv4(addr.0, 32, None)
+        .ipv6(addr.1, 128)
         .layer(tun_rs::Layer::L3)
         .build_async()
 }
