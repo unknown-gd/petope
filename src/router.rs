@@ -71,6 +71,10 @@ impl Router {
             return Ok(());
         }
 
+        if dst.is_multicast() {
+            return Ok(());
+        }
+
         println!(
             "{:?} {} -> {} (capacity {}/{})",
             ip.payload_ip_number(),
