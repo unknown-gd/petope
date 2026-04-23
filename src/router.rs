@@ -4,7 +4,7 @@ use bytes::BytesMut;
 use etherparse::IpSlice;
 use iroh::EndpointId;
 use std::{
-    net::{IpAddr, Ipv6Addr},
+    net::{IpAddr, Ipv4Addr, Ipv6Addr},
     sync::Arc,
 };
 use tokio::sync::mpsc;
@@ -21,8 +21,8 @@ pub struct Router {
 
 impl Router {
     pub async fn run(state: &State) -> Result<Arc<Self>> {
-        let (route_queue, incoming) = mpsc::channel(1);
-        let (send_queue, outcoming) = mpsc::channel(1);
+        let (route_queue, incoming) = mpsc::channel(128);
+        let (send_queue, outcoming) = mpsc::channel(128);
         tun::create_tun(state, route_queue.clone(), outcoming).await?;
 
         let router = Arc::new(Router {
@@ -49,18 +49,29 @@ impl Router {
     async fn route(&self, bytes: BytesMut) -> Result<()> {
         let ip = IpSlice::from_slice(&bytes)?;
         let me: Ipv6Addr = "fdee::1".parse().unwrap();
+        let me2: Ipv4Addr = "10.1.1.1".parse().unwrap();
 
-        println!(
-            "{:?} {} -> {}",
-            ip.payload_ip_number(),
-            ip.source_addr(),
-            ip.destination_addr(),
-        );
+        if self.route_queue.capacity() < 4 {
+            println!(
+                "too much incoming, channel capacity {}/{}",
+                self.route_queue.capacity(),
+                self.route_queue.max_capacity()
+            );
+        }
 
-        if ip.destination_addr() == me {
+        if ip.destination_addr() == me || ip.destination_addr() == me2 {
             self.send_queue.send(bytes).await?;
             return Ok(());
         }
+
+        println!(
+            "{:?} {} -> {} (capacity {}/{})",
+            ip.payload_ip_number(),
+            ip.source_addr(),
+            ip.destination_addr(),
+            self.route_queue.capacity(),
+            self.route_queue.max_capacity()
+        );
 
         println!("routing to peers not done yet");
 

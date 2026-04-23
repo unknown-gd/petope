@@ -38,6 +38,13 @@ pub async fn create_tun(
     // send data to the tun
     tokio::spawn(async move {
         while let Some(bytes) = outcoming.recv().await {
+            if outcoming.capacity() < 4 {
+                println!(
+                    "tun out backpressure, channel capacity {}/{}",
+                    outcoming.capacity(),
+                    outcoming.max_capacity()
+                );
+            }
             writer.send(bytes).await.unwrap();
         }
     });
@@ -48,7 +55,8 @@ pub async fn create_tun(
 fn create_device(state: &State) -> std::io::Result<AsyncDevice> {
     DeviceBuilder::new()
         .name(get_device_name(state)?)
-        .mtu(std::u16::MAX)
+        .mtu(1000)
+        .ipv4("10.1.1.1", 32, None)
         .ipv6("fdee::1", 128)
         .layer(tun_rs::Layer::L3)
         .build_async()
