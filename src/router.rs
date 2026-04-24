@@ -10,7 +10,6 @@ pub struct Router {
     pub me: PeerAddr,
     pub peers: Vec<Arc<Peer>>,
 
-    endpoint: Endpoint,
     route_queue: mpsc::Sender<BytesMut>,
     send_queue: mpsc::Sender<BytesMut>,
     peer_routing_table: HashMap<IpAddr, Arc<Peer>>,
@@ -27,7 +26,7 @@ impl Router {
 
         let mut peers = Vec::with_capacity(config.peers.len());
         for c in &config.peers {
-            let p = Peer::handle(c.id, route_queue.clone()).await;
+            let p = Peer::handle(endpoint.clone(), c.id, route_queue.clone()).await;
             peers.push(p);
         }
 
@@ -47,7 +46,6 @@ impl Router {
             peer_routing_table,
             route_queue,
             send_queue,
-            endpoint,
         });
 
         router.clone().receive(incoming).await;
