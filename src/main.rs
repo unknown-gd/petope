@@ -5,7 +5,6 @@ use iroh::{Endpoint, endpoint::presets};
 
 mod config;
 mod connection_manager;
-mod peer;
 mod peer_addr;
 mod router;
 mod tun;
@@ -31,24 +30,7 @@ async fn main() -> Result<()> {
         .await
         .context("bind an endpoint")?;
 
-    let router = Router::run(&config, endpoint.clone())
-        .await
-        .context("run router")?;
+    let router = Router::new(&config, endpoint).context("Router::new")?;
 
-    println!("running as {}", endpoint.id().to_z32());
-    println!("ipv4: {} ipv6: {}", router.me.v4, router.me.v6);
-
-    println!("peers:");
-    for peer in router.peers.values() {
-        println!(
-            "- {} ipv4: {} ipv6: {}",
-            peer.addr.id.fmt_short(),
-            peer.addr.v4,
-            peer.addr.v6
-        );
-    }
-
-    tokio::signal::ctrl_c().await?;
-    println!("bye-bye");
-    Ok(())
+    router.run().await
 }

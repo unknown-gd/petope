@@ -1,11 +1,12 @@
 use crate::utils;
-use anyhow::{Context, Result, anyhow};
+use anyhow::{Context, Result, anyhow, bail};
 use iroh::{EndpointId, SecretKey};
 use toml_edit::{DocumentMut, Item, Table};
 
 #[derive(Debug, Clone)]
 pub struct Config {
     pub interface_name: Option<String>,
+    pub mtu: u16,
     pub peers: Vec<Peer>,
 }
 
@@ -70,6 +71,11 @@ impl Config {
             .and_then(Item::as_str)
             .map(String::from);
 
+        let mtu = doc.get("mtu").and_then(Item::as_integer).unwrap_or(1280);
+        if mtu < 1280 {
+            bail!("mtu can't be lower than 1280");
+        }
+
         let mut peers = Vec::new();
         if let Some(arr) = doc.get("peer").and_then(Item::as_array_of_tables) {
             for (i, t) in arr.iter().enumerate() {
@@ -81,6 +87,7 @@ impl Config {
 
         Ok(Config {
             interface_name,
+            mtu: mtu.try_into().context("mtu is invalid")?,
             peers,
         })
     }
