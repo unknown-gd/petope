@@ -16,5 +16,5 @@ pub fn ipv4_from_id(id: &EndpointId) -> Ipv4Addr {
 }
 
 pub fn ipv6_from_id(id: &EndpointId) -> Ipv6Addr {
-    Ipv6Addr::new(0xfd22, id[0] as u16, 0, 0, 0, 0, 0, 0)
+    Ipv6Addr::new(0xfd22, id[0] as u16, 0, 0, 0, 0, 0, 1)
 }
