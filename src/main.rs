@@ -4,6 +4,7 @@ use clap::Parser;
 use iroh::{Endpoint, endpoint::presets};
 
 mod config;
+mod connection_manager;
 mod peer;
 mod peer_addr;
 mod router;

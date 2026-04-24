@@ -1,4 +1,6 @@
-use crate::{config::Config, peer::Peer, peer_addr::PeerAddr, tun};
+use crate::{
+    config::Config, connection_manager::ConnectionManager, peer::Peer, peer_addr::PeerAddr, tun,
+};
 use anyhow::{Context, Result};
 use bytes::BytesMut;
 use etherparse::IpSlice;
@@ -13,11 +15,14 @@ pub struct Router {
     route_queue: mpsc::Sender<BytesMut>,
     send_queue: mpsc::Sender<BytesMut>,
     peer_routing_table: HashMap<IpAddr, Arc<Peer>>,
+    manager: ConnectionManager,
 }
 
 impl Router {
     pub async fn run(config: &Config, endpoint: Endpoint) -> Result<Arc<Self>> {
         let me: PeerAddr = endpoint.id().into();
+
+        let manager = ConnectionManager::new(endpoint.clone());
 
         let (route_queue, incoming) = mpsc::channel(128);
         let (send_queue, outcoming) = mpsc::channel(128);
@@ -46,10 +51,12 @@ impl Router {
             peer_routing_table,
             route_queue,
             send_queue,
+            manager,
         });
 
         router.clone().receive(incoming).await;
         router.clone().acceptor(endpoint).await;
+        router.clone().manage_connections().await;
 
         Ok(router)
     }
@@ -83,7 +90,15 @@ impl Router {
         }
 
         if let Some(peer) = self.peer_routing_table.get(&dst) {
-            peer.send(bytes);
+            if let Some(conn) = self.manager.get(peer.addr.id).await {
+                if let Err(e) = conn.send_datagram(bytes.into()) {
+                    println!(
+                        "err while sending data to {}: {:?}",
+                        peer.addr.id.fmt_short(),
+                        e
+                    );
+                }
+            }
         }
 
         Ok(())
@@ -118,6 +133,12 @@ impl Router {
                     ),
                 }
             }
+        });
+    }
+
+    async fn manage_connections(self: Arc<Self>) {
+        tokio::spawn(async move {
+            self.manager.run().await;
         });
     }
 }
