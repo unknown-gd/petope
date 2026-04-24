@@ -2,10 +2,7 @@ use crate::peer_addr::PeerAddr;
 use anyhow::Result;
 use bytes::BytesMut;
 use futures::StreamExt;
-use iroh::{
-    Endpoint, EndpointId,
-    endpoint::{self, Connection},
-};
+use iroh::{Endpoint, EndpointId, endpoint::Connection};
 use ring_channel::{RingReceiver, RingSender, ring_channel};
 use std::sync::Arc;
 use tokio::sync::{mpsc, oneshot};
@@ -82,5 +79,10 @@ impl Peer {
                 }
             }
         });
+    }
+
+    // Accepts incoming connection which later will be reused
+    pub async fn accept(&self, conn: Connection) {
+        todo!("tell connector about existing connection")
     }
 }

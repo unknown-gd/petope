@@ -25,6 +25,7 @@ async fn main() -> Result<()> {
 
     let endpoint = Endpoint::builder(presets::N0)
         .secret_key(secret_key)
+        .alpns(vec![b"petope/1".to_vec()])
         .bind()
         .await
         .context("bind an endpoint")?;
@@ -37,7 +38,7 @@ async fn main() -> Result<()> {
     println!("ipv4: {} ipv6: {}", router.me.v4, router.me.v6);
 
     println!("peers:");
-    for peer in &router.peers {
+    for peer in router.peers.values() {
         println!(
             "- {} ipv4: {} ipv6: {}",
             peer.addr.id.fmt_short(),
