@@ -54,7 +54,7 @@ pub async fn create_tun(
 fn create_device(config: &Config, addr: (Ipv4Addr, Ipv6Addr)) -> std::io::Result<AsyncDevice> {
     DeviceBuilder::new()
         .name(get_device_name(config)?)
-        .mtu(1000)
+        .mtu(1280)
         .ipv4(addr.0, 32, None)
         .ipv6(addr.1, 128)
         .layer(tun_rs::Layer::L3)
