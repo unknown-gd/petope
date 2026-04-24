@@ -11,14 +11,10 @@ pub fn base64_decode(encoded: &str) -> Result<Vec<u8>, base64::DecodeError> {
     base64::engine::general_purpose::STANDARD.decode(encoded)
 }
 
-pub fn ip_pair_from_id(id: EndpointId) -> (Ipv4Addr, Ipv6Addr) {
-    let mut v4 = [0u8; 4];
-    v4[0] = 10;
-    v4[1..].copy_from_slice(&id[..3]);
+pub fn ipv4_from_id(id: &EndpointId) -> Ipv4Addr {
+    Ipv4Addr::new(10, id[0], id[1], id[2])
+}
 
-    let mut v6 = [0u8; 16];
-    v6[0] = 0xfd;
-    v6[1..].copy_from_slice(&id[..15]);
-
-    (Ipv4Addr::from_octets(v4), Ipv6Addr::from_octets(v6))
+pub fn ipv6_from_id(id: &EndpointId) -> Ipv6Addr {
+    Ipv6Addr::new(0xfd22, id[0] as u16, 0, 0, 0, 0, 0, 0)
 }

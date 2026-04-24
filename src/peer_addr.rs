@@ -30,12 +30,10 @@ impl PeerAddr {
 
 impl From<EndpointId> for PeerAddr {
     fn from(id: EndpointId) -> Self {
-        let (addr_v4, addr_v6) = utils::ip_pair_from_id(id);
-
         PeerAddr {
             id,
-            v4: addr_v4,
-            v6: addr_v6,
+            v4: utils::ipv4_from_id(&id),
+            v6: utils::ipv6_from_id(&id),
         }
     }
 }
