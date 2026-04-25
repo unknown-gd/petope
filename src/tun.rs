@@ -55,7 +55,7 @@ impl TunDevice {
         })
     }
 
-    pub async fn run(mut self) -> Result<()> {
+    pub async fn handle(mut self) -> Result<()> {
         let dev = self.create_device().context("create tun device")?;
         let ifindex = Self::get_ifindex(&self).context("get interface index")?;
 

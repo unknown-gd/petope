@@ -6,6 +6,7 @@ use iroh::{Endpoint, endpoint::presets};
 mod config;
 mod connection_manager;
 mod peer_addr;
+mod peer_router;
 mod router;
 mod tun;
 mod utils;
