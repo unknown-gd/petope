@@ -1,8 +1,11 @@
-use std::net::{Ipv4Addr, Ipv6Addr};
-
 use base64::Engine;
+use bytes::{BufMut, BytesMut};
+use etherparse::{Icmpv4Type, Icmpv6Type, IpSlice, PacketBuilder, icmpv4::DestUnreachableHeader};
 use futures_lite::{Stream, StreamExt};
 use iroh::EndpointId;
+use std::net::{Ipv4Addr, Ipv6Addr};
+
+pub const HOP_LIMIT: u8 = 64;
 
 pub fn base64_encode(data: &[u8]) -> String {
     base64::engine::general_purpose::STANDARD.encode(data)
@@ -31,4 +34,31 @@ where
         drained += 1;
     }
     drained
+}
+
+pub fn fragmentation_needed_response(ip: &IpSlice, mtu: usize) -> BytesMut {
+    match ip {
+        IpSlice::Ipv4(v4) => {
+            let header = v4.header();
+            let next_hop_mtu = mtu.try_into().unwrap_or(std::u16::MAX);
+            let builder = PacketBuilder::ipv4(header.destination(), header.source(), HOP_LIMIT)
+                .icmpv4(Icmpv4Type::DestinationUnreachable(
+                    DestUnreachableHeader::FragmentationNeeded { next_hop_mtu },
+                ));
+
+            let mut writer = BytesMut::with_capacity(builder.size(0)).writer();
+            builder.write(&mut writer, &[]).unwrap();
+            writer.into_inner()
+        }
+        IpSlice::Ipv6(v6) => {
+            let header = v6.header();
+            let mtu = mtu.try_into().unwrap_or(std::u32::MAX);
+            let builder = PacketBuilder::ipv6(header.destination(), header.source(), HOP_LIMIT)
+                .icmpv6(Icmpv6Type::PacketTooBig { mtu });
+
+            let mut writer = BytesMut::with_capacity(builder.size(0)).writer();
+            builder.write(&mut writer, &[]).unwrap();
+            writer.into_inner()
+        }
+    }
 }

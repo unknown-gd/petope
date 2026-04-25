@@ -71,7 +71,11 @@ impl Config {
             .and_then(Item::as_str)
             .map(String::from);
 
-        let mtu = doc.get("mtu").and_then(Item::as_integer).unwrap_or(1280);
+        let mtu = doc
+            .get("mtu")
+            .and_then(Item::as_integer)
+            .map(|x| x as u16)
+            .unwrap_or(std::u16::MAX);
         if mtu < 1280 {
             bail!("mtu can't be lower than 1280");
         }

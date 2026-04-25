@@ -1,7 +1,7 @@
 use crate::{config, utils};
 use arc_swap::ArcSwapOption;
 use bytes::Bytes;
-use etherparse::IpSlice;
+use etherparse::{IpHeadersSlice, IpSlice};
 use futures_lite::StreamExt;
 use iroh::{
     Endpoint, EndpointId,
@@ -80,13 +80,42 @@ impl Peer {
 
     // sends a datagram or drops it, and handles TooLarge error
     fn send(&self, conn: &Connection, bytes: Bytes) -> Result<(), SendDatagramError> {
-        match conn.send_datagram(bytes) {
-            Ok(_) => Ok(()),
-            Err(SendDatagramError::TooLarge) => {
-                eprintln!("todo: send icmp too large");
-                Ok(())
+        if let Some(max) = conn.max_datagram_size() {
+            if bytes.len() > max {
+                self.handle_too_big(bytes, max);
+                return Ok(());
             }
-            Err(e) => Err(e),
+        }
+
+        conn.send_datagram(bytes)
+    }
+
+    // handles too big packet either by PMTU or by sending fragmented packet
+    fn handle_too_big(&self, bytes: Bytes, max: usize) {
+        let ip = match IpSlice::from_slice(&bytes[..]) {
+            Ok(ip) => ip,
+            Err(e) => {
+                eprintln!("send to {} bad packet: {:?}", self, e);
+                return;
+            }
+        };
+
+        let header = ip.header();
+
+        let dont_fragment = match header {
+            IpHeadersSlice::Ipv4(h, _) => h.dont_fragment(),
+            _ => true, // ipv6 routers don't fragment packets
+        };
+
+        if dont_fragment {
+            let buf = utils::fragmentation_needed_response(&ip, max);
+            let _ = self.to_network_tx.send(buf.freeze());
+        } else {
+            eprintln!(
+                "todo: send fragmented packet (len: {} max: {})",
+                bytes.len(),
+                max
+            );
         }
     }
 
