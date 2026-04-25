@@ -1,4 +1,4 @@
-use crate::{config::Config, router::Router};
+use crate::{config::Config, connection_manager::ALPN, router::Router};
 use anyhow::{Context, Result};
 use clap::Parser;
 use iroh::{Endpoint, endpoint::presets};
@@ -26,7 +26,7 @@ async fn main() -> Result<()> {
 
     let endpoint = Endpoint::builder(presets::N0)
         .secret_key(secret_key)
-        .alpns(vec![b"petope/1".to_vec()])
+        .alpns(vec![ALPN.to_vec()])
         .bind()
         .await
         .context("bind an endpoint")?;
