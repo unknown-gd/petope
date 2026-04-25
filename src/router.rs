@@ -17,8 +17,8 @@ pub struct Router {
 impl Router {
     pub fn new(config: &Config, endpoint: Endpoint) -> Result<Self> {
         let me = PeerAddr::from(endpoint.id());
-        let (from_network_tx, from_network_rx) = ring_channel(NonZeroUsize::new(8).unwrap());
-        let (to_network_tx, to_network_rx) = ring_channel::<Bytes>(NonZeroUsize::new(8).unwrap());
+        let (from_network_tx, from_network_rx) = ring_channel(NonZeroUsize::new(128).unwrap());
+        let (to_network_tx, to_network_rx) = ring_channel::<Bytes>(NonZeroUsize::new(128).unwrap());
 
         let device = TunDevice::new(config, &endpoint.id(), from_network_tx, to_network_rx)
             .context("TunDevice::new")?;

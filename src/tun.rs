@@ -67,7 +67,8 @@ impl TunDevice {
             while let Some(frame) = rx.next().await {
                 match frame {
                     Ok(bytes) => {
-                        if self.from_network_tx.send(bytes.freeze()).is_err() {
+                        if let Err(_) = self.from_network_tx.send(bytes.freeze()) {
+                            // shutdown
                             return;
                         }
                     }
