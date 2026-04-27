@@ -108,7 +108,7 @@ impl Peer {
         };
 
         if dont_fragment {
-            let buf = utils::fragmentation_needed_response(&ip, max);
+            let buf = utils::fragmentation_needed_response(&ip, &bytes, max);
             let _ = self.to_network_tx.send(buf.freeze());
         } else {
             eprintln!(

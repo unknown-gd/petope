@@ -105,6 +105,7 @@ impl Router {
     ) -> Result<()> {
         let ip = IpSlice::from_slice(&bytes[..]).context("parse incoming ip packet")?;
         let dst = ip.destination_addr();
+        let ipnumber = ip.payload_ip_number();
 
         if me == dst {
             let _ = to_network_tx.send(bytes);
@@ -113,7 +114,10 @@ impl Router {
 
         if let Some(target) = to_peer_tx_map.get(&dst) {
             let _ = target.send(bytes);
+            return Ok(());
         }
+
+        println!("unknown route -> {} {:?}", dst, ipnumber.keyword_str(),);
 
         Ok(())
     }

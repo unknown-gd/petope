@@ -49,7 +49,7 @@ where
     drained
 }
 
-pub fn fragmentation_needed_response(ip: &IpSlice, mtu: usize) -> BytesMut {
+pub fn fragmentation_needed_response(ip: &IpSlice, payload: &[u8], mtu: usize) -> BytesMut {
     match ip {
         IpSlice::Ipv4(v4) => {
             let header = v4.header();
@@ -59,8 +59,11 @@ pub fn fragmentation_needed_response(ip: &IpSlice, mtu: usize) -> BytesMut {
                     DestUnreachableHeader::FragmentationNeeded { next_hop_mtu },
                 ));
 
-            let mut writer = BytesMut::with_capacity(builder.size(0)).writer();
-            builder.write(&mut writer, &[]).unwrap();
+            let payload_len = payload.len().min(header.slice().len() + 8); // ipv4 requires only ip header + 64bit (bytes) of transport payload
+            let payload = &payload[..payload_len];
+
+            let mut writer = BytesMut::with_capacity(builder.size(payload.len())).writer();
+            builder.write(&mut writer, payload).unwrap();
             writer.into_inner()
         }
         IpSlice::Ipv6(v6) => {
@@ -69,8 +72,11 @@ pub fn fragmentation_needed_response(ip: &IpSlice, mtu: usize) -> BytesMut {
             let builder = PacketBuilder::ipv6(header.destination(), header.source(), HOP_LIMIT)
                 .icmpv6(Icmpv6Type::PacketTooBig { mtu });
 
-            let mut writer = BytesMut::with_capacity(builder.size(0)).writer();
-            builder.write(&mut writer, &[]).unwrap();
+            let payload_len = payload.len().min(mtu as usize - header.slice().len()); // ipv6 requires entire ip payload in mtu
+            let payload = &payload[..payload_len];
+
+            let mut writer = BytesMut::with_capacity(builder.size(payload.len())).writer();
+            builder.write(&mut writer, payload).unwrap(); // ipv6 does not care about payload size
             writer.into_inner()
         }
     }
